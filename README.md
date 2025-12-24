@@ -104,109 +104,52 @@ curl http://localhost:3000/health-check
 
 ## CI/CD Workflows
 
-This project uses a two-workflow architecture for building and deploying Docker images to GitHub Container Registry (GHCR).
+Two GitHub Actions workflows handle versioning, building, and deployment.
 
-### Workflow Architecture
+### Build and Release
 
-#### 1. Version Bump Workflow (`version-bump.yaml`)
+Runs automatically when you push to master.
 
-**Trigger**: Automatically on push to `master` branch
-
-**What it does**:
-- Bumps the patch version in `package.json`
-- Creates a commit with message: `chore: release vX.X.X [skip ci]`
-- Creates a git tag `vX.X.X`
-- Pushes commit and tag to trigger the build workflow
-
-#### 2. Build and Deploy Workflow (`build-deploy.yaml`)
-
-**Trigger**: Automatically when commits starting with `chore: release` are pushed
-
-**Build Job**:
-- Extracts version from `package.json`
+What happens:
+- Detects version bump type from your commit message (feat = minor, fix/chore = patch, BREAKING CHANGE = major)
+- Updates version in package.json
 - Builds Docker image
-- Pushes image with version tag only (e.g., `v1.0.8`)
-- Uses build cache for efficiency
+- Pushes image to GHCR with version tag (e.g., v1.0.8)
+- Commits the version bump
+- Tags the commit
 
-**Deploy Job** (runs after build):
-- Removes all existing `-released` tags from GHCR
-- Pulls the newly built version image
-- Tags it with `-released` suffix (e.g., `v1.0.8-released`)
-- Pushes the `-released` tag
+Your commit message determines the version:
+- `feat: add something` → minor bump (1.0.0 → 1.1.0)
+- `fix: bug fix` → patch bump (1.0.0 → 1.0.1)
+- `feat!: breaking change` → major bump (1.0.0 → 2.0.0)
 
-### Image Tagging Strategy
+### Deploy to Production
 
-**Base version tags** (e.g., `v1.0.8`):
-- Created by the build job
-- Never deleted
-- Permanent record of all built versions
+Runs automatically after Build and Release.
 
-**Release tags** (e.g., `v1.0.8-released`):
-- Created by the deploy job
-- Marks which version is currently deployed
-- Only one `-released` tag exists at a time
-- Your deployment system should pull images with this suffix
+What happens:
+- Removes any existing `-released` tags
+- Pulls the version image that was just built
+- Tags it with `-released` suffix (e.g., v1.0.8-released)
+- Pushes the tagged image
 
-### Normal Release Flow
+The `-released` tag marks which version is currently deployed. Only one exists at a time.
 
-```
-1. Push code to master
-   ↓
-2. Version bump workflow runs
-   → Bumps version to v1.0.8
-   → Commits "chore: release v1.0.8 [skip ci]"
-   → Pushes commit and tag
-   ↓
-3. Build and Deploy workflow triggers
-   → Build job: Builds and pushes v1.0.8
-   → Deploy job: Tags v1.0.8-released
-   ↓
-4. Image v1.0.8-released is ready for deployment
-```
+### Rollback
 
-### Rollback/Redeploy Process
+To deploy an older version:
 
-To rollback or redeploy a previous version:
+1. Go to GitHub Actions
+2. Find the "Deploy to Production" workflow for the version you want
+3. Click "Re-run jobs" → "Re-run deploy jobs"
 
-1. Go to **GitHub Actions** tab in your repository
-2. Find the **"Build and Deploy"** workflow run for the version you want to deploy
-3. Click on the workflow run (e.g., for v1.0.5)
-4. Click **"Re-run jobs"** dropdown
-5. Select **"Re-run deploy jobs"** (only the deploy job, not build)
-6. The deploy job will:
-   - Remove the current `-released` tag
-   - Pull the v1.0.5 image (already built)
-   - Tag it as v1.0.5-released
-   - Push the new `-released` tag
+Takes about 30 seconds. No rebuild needed since the image already exists.
 
-**Time to rollback**: ~30 seconds (no rebuild required!)
+### Image Tags
 
-### Example Scenarios
-
-**Scenario 1: Deploy latest version**
-```
-Push code → Auto-bumps to v1.0.9 → Builds and deploys v1.0.9-released
-```
-
-**Scenario 2: Rollback to previous version**
-```
-Go to Actions → Find v1.0.7 workflow → Re-run deploy job
-Result: v1.0.7-released is now the deployed version
-```
-
-**Scenario 3: Redeploy current version**
-```
-Go to Actions → Find current version workflow → Re-run deploy job
-Result: Re-applies -released tag (useful after manual registry cleanup)
-```
-
-### Benefits
-
-- ✅ **Fast rollbacks**: 30 seconds vs 2-3 minutes for rebuild
-- ✅ **No rebuilds needed**: Just re-tag existing images
-- ✅ **Version history**: All built versions remain in registry
-- ✅ **Clean deployment marker**: Single `-released` tag shows what's deployed
-- ✅ **Audit trail**: All deployments visible in workflow history
+- `v1.0.8` - The actual version, never deleted
+- `v1.0.8-released` - Currently deployed version, moves between versions
+- `buildcache` - Build cache for faster builds
 
 ## Requirements
 
