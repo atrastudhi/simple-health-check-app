@@ -35,7 +35,7 @@ jobs:
           echo "Building version: $VERSION"
           
           # Set workflow run name with version
-          echo "### 🏗️ Building v$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "### Building v$VERSION" >> $GITHUB_STEP_SUMMARY
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

@@ -49,9 +49,6 @@ jobs:
           git tag v$VERSION
           git push && git push --tags
           
-          echo "### 🎉 Version Bumped to v$VERSION ($BUMP_TYPE)" >> $GITHUB_STEP_SUMMARY
-          echo "Next: Build and Deploy workflow will trigger automatically" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### 🎉 Version Bumped to v$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "### Version Bumped to v$VERSION ($BUMP_TYPE)" >> $GITHUB_STEP_SUMMARY
           echo "Next: Build and Deploy workflow will trigger automatically" >> $GITHUB_STEP_SUMMARY
 
