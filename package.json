@@ -1,6 +1,6 @@
 {
   "name": "simple-health-check-app",
-  "version": "1.0.37",
+  "version": "1.0.38",
   "description": "A simple Node.js health check application",
   "main": "server.js",
   "scripts": {
