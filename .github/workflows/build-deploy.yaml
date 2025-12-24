@@ -14,10 +14,17 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.head_commit.message, 'chore: release') && github.actor == 'github-actions[bot]'
+    if: startsWith(github.event.head_commit.message, 'chore: release v')
     outputs:
       version: ${{ steps.version.outputs.VERSION }}
     steps:
+      - name: Debug commit info
+        run: |
+          echo "Commit message: ${{ github.event.head_commit.message }}"
+          echo "Author name: ${{ github.event.head_commit.author.name }}"
+          echo "Author email: ${{ github.event.head_commit.author.email }}"
+          echo "Actor: ${{ github.actor }}"
+      
       - uses: actions/checkout@v4
       
       - name: Extract version
