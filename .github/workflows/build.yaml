@@ -40,6 +40,11 @@ jobs:
           git commit -m "chore: bump version to ${{ steps.version.outputs.VERSION }} [skip ci]"
           git push
       
+      - name: Create and push git tag
+        run: |
+          git tag v${{ steps.version.outputs.VERSION }}
+          git push origin v${{ steps.version.outputs.VERSION }}
+      
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
