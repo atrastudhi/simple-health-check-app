@@ -70,6 +70,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}
         run: |
+          set -e
           echo "Deploying version: v$VERSION"
           
           # Install GitHub CLI if not available
@@ -85,7 +86,13 @@ jobs:
           echo "$GITHUB_TOKEN" | gh auth login --with-token
           
           # Determine if owner is user or org
-          OWNER_TYPE=$(gh api /users/$REPO_OWNER --jq '.type')
+          echo "Detecting repository owner type..."
+          OWNER_TYPE=$(gh api /users/$REPO_OWNER --jq '.type' 2>&1) || {
+            echo "Failed to detect owner type, defaulting to user"
+            OWNER_TYPE="User"
+          }
+          echo "Owner type: $OWNER_TYPE"
+          
           if [ "$OWNER_TYPE" = "Organization" ]; then
             API_PATH="/orgs/$REPO_OWNER"
           else
