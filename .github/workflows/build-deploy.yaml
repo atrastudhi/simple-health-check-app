@@ -84,13 +84,22 @@ jobs:
           # Authenticate gh with GITHUB_TOKEN
           echo "$GITHUB_TOKEN" | gh auth login --with-token
           
+          # Determine if owner is user or org
+          OWNER_TYPE=$(gh api /users/$REPO_OWNER --jq '.type')
+          if [ "$OWNER_TYPE" = "Organization" ]; then
+            API_PATH="/orgs/$REPO_OWNER"
+          else
+            API_PATH="/users/$REPO_OWNER"
+          fi
+          echo "Using API path: $API_PATH"
+          
           # Get package versions and find all -released tags
           echo "Finding existing -released tags..."
           RELEASED_VERSIONS=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/orgs/$REPO_OWNER/packages/container/simple-health-check-app/versions" \
-            --jq '.[] | select(.metadata.container.tags[] | endswith("-released")) | .metadata.container.tags[] | select(endswith("-released"))')
+            "$API_PATH/packages/container/simple-health-check-app/versions" \
+            --jq '.[] | select(.metadata.container.tags[] | endswith("-released")) | .metadata.container.tags[] | select(endswith("-released"))' 2>/dev/null || echo "")
           
           # Delete all -released tags
           if [ -n "$RELEASED_VERSIONS" ]; then
@@ -102,7 +111,7 @@ jobs:
               VERSION_ID=$(gh api \
                 -H "Accept: application/vnd.github+json" \
                 -H "X-GitHub-Api-Version: 2022-11-28" \
-                "/orgs/$REPO_OWNER/packages/container/simple-health-check-app/versions" \
+                "$API_PATH/packages/container/simple-health-check-app/versions" \
                 --jq ".[] | select(.metadata.container.tags[] == \"$TAG\") | .id")
               
               if [ -n "$VERSION_ID" ]; then
@@ -110,7 +119,7 @@ jobs:
                   --method DELETE \
                   -H "Accept: application/vnd.github+json" \
                   -H "X-GitHub-Api-Version: 2022-11-28" \
-                  "/orgs/$REPO_OWNER/packages/container/simple-health-check-app/versions/$VERSION_ID" || true
+                  "$API_PATH/packages/container/simple-health-check-app/versions/$VERSION_ID" || true
               fi
             done
           else
