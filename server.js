@@ -7,7 +7,6 @@ const PORT = process.env.PORT || 3001;
 const server = http.createServer((req, res) => {
   const { method, url } = req;
 
-  // Log incoming requests
   console.log(`[${new Date().toISOString()}] ${method} ${url}`);
 
   // Handle /health-check endpoint
