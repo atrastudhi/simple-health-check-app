@@ -29,12 +29,28 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          npm version patch --no-git-tag-version
+          
+          # Determine bump type from commit message
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          
+          if echo "$COMMIT_MSG" | grep -q "BREAKING CHANGE:" || echo "$COMMIT_MSG" | grep -q "^[a-z]*!:"; then
+            BUMP_TYPE="major"
+          elif echo "$COMMIT_MSG" | grep -qE "^feat(\(.+\))?:"; then
+            BUMP_TYPE="minor"
+          else
+            BUMP_TYPE="patch"
+          fi
+          
+          echo "Bump type: $BUMP_TYPE"
+          npm version $BUMP_TYPE --no-git-tag-version
           VERSION=$(node -p "require('./package.json').version")
           git add package.json
           git commit -m "chore: release v$VERSION"
           git tag v$VERSION
           git push && git push --tags
+          
+          echo "### 🎉 Version Bumped to v$VERSION ($BUMP_TYPE)" >> $GITHUB_STEP_SUMMARY
+          echo "Next: Build and Deploy workflow will trigger automatically" >> $GITHUB_STEP_SUMMARY
           
           echo "### 🎉 Version Bumped to v$VERSION" >> $GITHUB_STEP_SUMMARY
           echo "Next: Build and Deploy workflow will trigger automatically" >> $GITHUB_STEP_SUMMARY
