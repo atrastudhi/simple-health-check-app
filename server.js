@@ -1,5 +1,7 @@
 const http = require('http');
 
+const { version } = require('./package.json');
+
 const PORT = process.env.PORT || 3001;
 
 const server = http.createServer((req, res) => {
@@ -12,6 +14,7 @@ const server = http.createServer((req, res) => {
   if (url === '/health-check' && method === 'GET') {
     const healthResponse = {
       status: 'ok',
+      version,
       timestamp: new Date().toISOString()
     };
 
