@@ -5,6 +5,10 @@ on:
     types: [completed]
     branches: [master]
 
+concurrency:
+  group: build-deploy
+  cancel-in-progress: false
+
 permissions:
   contents: read
   packages: write

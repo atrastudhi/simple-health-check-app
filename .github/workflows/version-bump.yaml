@@ -3,6 +3,10 @@ on:
   push:
     branches: [ "master" ]
 
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
