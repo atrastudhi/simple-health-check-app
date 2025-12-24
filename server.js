@@ -14,7 +14,8 @@ const server = http.createServer((req, res) => {
     const healthResponse = {
       status: 'ok',
       version,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      new: true
     };
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
