@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 1
       
       - name: Set up Node
@@ -35,4 +35,7 @@ jobs:
           git commit -m "chore: release v$VERSION [skip ci]"
           git tag v$VERSION
           git push && git push --tags
+          
+          echo "### 🎉 Version Bumped to v$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "Next: Build and Deploy workflow will trigger automatically" >> $GITHUB_STEP_SUMMARY
 

@@ -1,8 +1,6 @@
 name: Build and Deploy
 on:
-  workflow_run:
-    workflows: ["Version Bump"]
-    types: [completed]
+  push:
     branches: [master]
 
 concurrency:
@@ -16,13 +14,11 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: startsWith(github.event.head_commit.message, 'chore: release')
     outputs:
       version: ${{ steps.version.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
       
       - name: Extract version
         id: version
@@ -33,7 +29,6 @@ jobs:
           
           # Set workflow run name with version
           echo "### 🏗️ Building v$VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "Triggered by: ${{ github.event.workflow_run.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -146,8 +141,8 @@ jobs:
           echo "Pushing -released tag..."
           docker push ghcr.io/$REPO_OWNER/simple-health-check-app:v$VERSION-released
           
-          echo "✅ Successfully deployed v$VERSION-released"
+          echo "Successfully deployed v$VERSION-released"
           
-          echo "### 🚀 Deployed v$VERSION-released" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployed v$VERSION-released" >> $GITHUB_STEP_SUMMARY
           echo "Image: \`ghcr.io/$REPO_OWNER/simple-health-check-app:v$VERSION-released\`" >> $GITHUB_STEP_SUMMARY
 
