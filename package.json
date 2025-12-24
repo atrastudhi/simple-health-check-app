@@ -1,13 +1,15 @@
 {
   "name": "simple-health-check-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple Node.js health check application",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": ["health-check", "nodejs"],
+  "keywords": [
+    "health-check",
+    "nodejs"
+  ],
   "author": "",
   "license": "ISC"
 }
-
