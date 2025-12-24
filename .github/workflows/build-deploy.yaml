@@ -14,7 +14,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.head_commit.message, 'chore: release')
+    if: startsWith(github.event.head_commit.message, 'chore: release') && github.actor == 'github-actions[bot]'
     outputs:
       version: ${{ steps.version.outputs.VERSION }}
     steps:
